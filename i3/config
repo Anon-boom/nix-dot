@@ -1,0 +1,454 @@
+# ╔════════════════════════════════════════════════════════════════════════╗
+# ║  i3 config                                                             ║
+# ║  Keybinds ported from ~/.config/hypr/hyprland/keybinds.conf            ║
+# ║  Reference: https://i3wm.org/docs/userguide.html                       ║
+# ║                                                                        ║
+# ║  Reload: $mod+Shift+c   Restart (needed for bar changes): $mod+Shift+r ║
+# ║  Find a window's class (for rules): xprop | grep WM_CLASS              ║
+# ║  Note: i3 doesn't allow comments at the end of a line, only on their   ║
+# ║        own line.                                                       ║
+# ╚════════════════════════════════════════════════════════════════════════╝
+#
+#  Colors: top of this file
+#
+#  Sections
+#   1. Variables              7. Workspaces
+#   2. Look                   8. App -> workspace rules
+#   3. Autostart              9. Audio & media
+#   4. Input                 10. Screenshots & recording
+#   5. Apps & launcher       11. Monitors
+#   6. Windows               12. Session
+#                            13. Bar
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Colors: edit here (#RRGGBB, or #RRGGBBAA where AA = opacity, 00 = invisible)
+# ──────────────────────────────────────────────────────────────────────────
+
+# Windows
+#   border       = title bar border
+#   background   = title bar fill
+#   text         = title text
+#   indicator    = edge where the next window will open
+#   child_border = the border around the window itself
+
+# Focused window (the one you're typing in)
+set $focused_border       #4D5F6E
+set $focused_background   #4D5F6E
+set $focused_text         #ffffff
+set $focused_indicator    #2e9ef4
+set $focused_child_border #285577
+
+# Unfocused windows
+set $unfocused_border       #6E5C4D
+set $unfocused_background   #6E5C4D
+set $unfocused_text         #888888
+set $unfocused_indicator    #292d2e
+set $unfocused_child_border #222222
+
+# Bar
+set $bar_background        #00000000
+set $bar_text              #cdd6f4
+set $bar_separator         #585b70
+set $bar_ws_focused_bg     #89b4fa
+set $bar_ws_focused_text   #1e1e2e
+set $bar_ws_inactive_bg    #1e1e2e
+set $bar_ws_inactive_text  #cdd6f4
+set $bar_ws_urgent_bg      #f38ba8
+set $bar_ws_urgent_text    #1e1e2e
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 1. Variables
+# ──────────────────────────────────────────────────────────────────────────
+
+# Mod4 = Super/Windows key, Mod1 = Alt
+set $mod Mod4
+set $alt Mod1
+
+set $term    kitty
+set $browser firefox
+set $scripts ~/.config/i3/scripts
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 2. Look
+# ──────────────────────────────────────────────────────────────────────────
+
+# Font for window titles and the bar
+set $font pango:Monocraft 12
+font $font
+
+# Window colors (defined at the top)
+#                 border             background             text             indicator             child_border
+client.focused    $focused_border    $focused_background    $focused_text    $focused_indicator    $focused_child_border
+client.unfocused  $unfocused_border  $unfocused_background  $unfocused_text  $unfocused_indicator  $unfocused_child_border
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 3. Autostart
+#    exec        = once, when i3 starts
+#    exec_always = on every start AND every reload/restart
+# ──────────────────────────────────────────────────────────────────────────
+
+# XDG autostart .desktop files
+exec --no-startup-id dex --autostart --environment i3
+
+# Lock the screen before suspend (lock manually with loginctl lock-session)
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+
+# Network tray applet
+exec --no-startup-id nm-applet
+
+# Monitor layout: restore the last one (aoc/lg/both), see section 11
+exec_always --no-startup-id $scripts/monitors.sh
+
+# Wallpaper (without it, empty workspaces show leftover window pixels)
+exec_always --no-startup-id feh --no-fehbg --bg-fill ~/.config/hypr/wallpaper.jpeg
+
+# DISABLED (GSP hang test): exec_always --no-startup-id nvidia-settings -a AllowVRR=0 -a SyncToVBlank=0
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 4. Input
+# ──────────────────────────────────────────────────────────────────────────
+
+# Gaming mouse: flat acceleration (raw input)
+exec_always --no-startup-id xinput set-prop "pointer:Logitech PRO X 2" "libinput Accel Profile Enabled" 0 1 0
+
+# Swap Caps Lock and Escape (for Vim/Neovim); restores the last on/off state
+exec_always --no-startup-id $scripts/capsswap.sh
+
+# Toggle the swap with $mod + Caps Lock
+# (while swapped, Caps sends Escape, so both keys are bound)
+bindsym --release $mod+Escape    exec --no-startup-id $scripts/capsswap.sh toggle
+bindsym --release $mod+Caps_Lock exec --no-startup-id $scripts/capsswap.sh toggle
+
+# $mod + drag = move floating windows
+floating_modifier $mod
+
+# Drag tiled windows by their title bar, or anywhere while holding $mod
+tiling_drag modifier titlebar
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 5. Apps & launcher
+# ──────────────────────────────────────────────────────────────────────────
+
+# App launcher (press again to close)
+# (closing on the 2nd press is set in ~/.config/rofi/config.rasi, kb-cancel)
+bindsym $mod+space exec --no-startup-id rofi -show drun
+bindsym $mod+a     exec --no-startup-id rofi -show drun
+
+# Window switcher
+bindsym $alt+Tab       exec --no-startup-id rofi -show window
+bindsym $alt+Shift+Tab exec --no-startup-id rofi -show window
+
+# Terminal
+bindsym $mod+Return exec $term
+bindsym $mod+t      exec $term
+
+# Browser
+bindsym $mod+w      exec $browser
+bindsym Ctrl+$mod+w exec $browser
+
+# Editors
+bindsym $mod+z exec zed
+bindsym $mod+c exec code
+
+# File managers
+bindsym $mod+e      exec nautilus --new-window
+bindsym $mod+$alt+e exec thunar
+
+# Settings & system tools
+bindsym Ctrl+$mod+i       exec env XDG_CURRENT_DESKTOP=gnome gnome-control-center
+bindsym Ctrl+$mod+v       exec pavucontrol
+bindsym Ctrl+$mod+Shift+v exec easyeffects
+# bindsym Ctrl+Shift+Escape exec gnome-system-monitor
+# doenst work
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 6. Windows
+# ──────────────────────────────────────────────────────────────────────────
+
+# Close
+bindsym $mod+q kill
+# Force-kill: click the window to kill
+bindsym --release $mod+Shift+$alt+q exec --no-startup-id xkill
+
+# Focus
+bindsym $mod+h            focus left
+bindsym $mod+l            focus right
+bindsym $mod+k            focus up
+bindsym $mod+j            focus down
+
+# Move (arrows or h/j/k/l)
+bindsym $mod+Shift+Left  move left
+bindsym $mod+Shift+Right move right
+bindsym $mod+Shift+Up    move up
+bindsym $mod+Shift+Down  move down
+bindsym $mod+Shift+h     move left
+bindsym $mod+Shift+l     move right
+bindsym $mod+Shift+k     move up
+bindsym $mod+Shift+j     move down
+
+# Resize width
+bindsym $mod+minus      resize shrink width 10 px or 5 ppt
+bindsym $mod+equal      resize grow width 10 px or 5 ppt
+bindsym $mod+semicolon  resize shrink width 10 px or 5 ppt
+bindsym $mod+apostrophe resize grow width 10 px or 5 ppt
+
+# Resize mode: $mod+r, then arrow keys; Enter/Esc/$mod+r to leave
+mode "resize" {
+        bindsym Left  resize shrink width 10 px or 10 ppt
+        bindsym Down  resize grow height 10 px or 10 ppt
+        bindsym Up    resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+r mode "default"
+}
+bindsym $mod+r mode "resize"
+
+# Fullscreen / floating / sticky (sticky = visible on every workspace)
+bindsym $mod+f            fullscreen toggle
+bindsym $mod+$alt+f       fullscreen toggle
+bindsym $mod+$alt+space   floating toggle
+bindsym Ctrl+$mod+backslash floating enable, resize set 1640 980, move position center
+bindsym $mod+p            sticky toggle
+
+# Layout: tabbed <-> split
+bindsym $mod+d      layout toggle tabbed split
+bindsym $mod+$alt+g layout toggle tabbed split
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 7. Workspaces
+#    $mod+N        go to workspace N
+#    $mod+Shift+N  move window to N and follow it
+#    $mod+Alt+N    move window to N, stay here
+# ──────────────────────────────────────────────────────────────────────────
+
+# Go to workspace
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+
+# Move window there and follow
+bindsym $mod+Shift+1 move container to workspace number 1, workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2, workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3, workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4, workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5, workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6, workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7, workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8, workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9, workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10, workspace number 10
+
+# Move window there, stay here
+bindsym $mod+$alt+1 move container to workspace number 1
+bindsym $mod+$alt+2 move container to workspace number 2
+bindsym $mod+$alt+3 move container to workspace number 3
+bindsym $mod+$alt+4 move container to workspace number 4
+bindsym $mod+$alt+5 move container to workspace number 5
+bindsym $mod+$alt+6 move container to workspace number 6
+bindsym $mod+$alt+7 move container to workspace number 7
+bindsym $mod+$alt+8 move container to workspace number 8
+bindsym $mod+$alt+9 move container to workspace number 9
+bindsym $mod+$alt+0 move container to workspace number 10
+
+# Next / previous workspace
+bindsym Ctrl+$mod+Right        workspace next
+bindsym Ctrl+$mod+Left         workspace prev
+bindsym $mod+Next              workspace next
+bindsym $mod+Prior             workspace prev
+bindsym Ctrl+$mod+Next         workspace next
+bindsym Ctrl+$mod+Prior        workspace prev
+bindsym Ctrl+$mod+bracketright workspace next
+bindsym Ctrl+$mod+bracketleft  workspace prev
+bindsym --whole-window $mod+button4 workspace next
+bindsym --whole-window $mod+button5 workspace prev
+
+# Next / previous on the current monitor only
+bindsym Ctrl+$mod+$alt+Right workspace next_on_output
+bindsym Ctrl+$mod+$alt+Left  workspace prev_on_output
+
+# Last used workspace
+bindsym $mod+Tab workspace back_and_forth
+
+# Move window to next / previous workspace (and follow)
+bindsym Ctrl+$mod+Shift+Right move container to workspace next, workspace next
+bindsym Ctrl+$mod+Shift+Left  move container to workspace prev, workspace prev
+bindsym --whole-window $mod+Shift+button4 move container to workspace next, workspace next
+bindsym --whole-window $mod+Shift+button5 move container to workspace prev, workspace prev
+
+# Move window to next / previous workspace (stay here)
+bindsym --whole-window $mod+$alt+button4 move container to workspace next
+bindsym --whole-window $mod+$alt+button5 move container to workspace prev
+
+# "game" workspace
+bindsym $mod+g        workspace game
+bindsym $mod+F1       workspace game
+bindsym $mod+Shift+g  move container to workspace game, workspace game
+bindsym $mod+Shift+F1 move container to workspace game, workspace game
+
+# "clash" workspace (Clash Royale)
+bindsym $mod+F2       workspace clash
+bindsym $mod+Shift+F2 exec ~/.local/bin/clashroyale
+
+# Scratchpad (hidden workspace, like Hyprland's special workspace)
+bindsym $mod+s                         scratchpad show
+bindsym Ctrl+$mod+s                    scratchpad show
+bindsym --whole-window $mod+button10   scratchpad show
+bindsym $mod+$alt+s                    move scratchpad
+bindsym Ctrl+$mod+Shift+Up             move scratchpad
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 8. App -> workspace rules
+#    assign     = open directly on that workspace
+#    for_window = move it there right after it opens (for apps that set
+#                 their class late, like Spotify)
+# ──────────────────────────────────────────────────────────────────────────
+
+# 1: terminals
+assign [class="^kitty$"]     number 1
+assign [class="^Alacritty$"] number 1
+# ...and take me there when one opens
+for_window [class="^(kitty|Alacritty)$"] focus
+
+# 3: browser
+assign [class="^firefox$"]   number 3
+
+# 5: Discord
+assign [class="^vesktop$"]   number 5
+
+# 7: music
+for_window [class="^Spotify$"] move container to workspace number 7
+
+# game: Steam (Proton/native), gamescope, Wine .exe from Lutris/Heroic
+for_window [class="^steam_app_"]  move container to workspace game
+for_window [class="^gamescope$"]  move container to workspace game
+for_window [class="(?i)\.exe$"]   move container to workspace game
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 9. Audio & media
+# ──────────────────────────────────────────────────────────────────────────
+
+# Volume
+bindsym XF86AudioRaiseVolume exec --no-startup-id wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+
+bindsym XF86AudioLowerVolume exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindsym XF86AudioMute        exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindsym $mod+Shift+m         exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 0%
+
+# Microphone mute
+bindsym $alt+XF86AudioMute exec --no-startup-id wpctl set-mute @DEFAULT_SOURCE@ toggle
+bindsym $mod+XF86AudioMute exec --no-startup-id wpctl set-mute @DEFAULT_SOURCE@ toggle
+
+# Player controls (Spotify, browser, ...)
+bindsym XF86AudioPlay      exec --no-startup-id playerctl play-pause
+bindsym XF86AudioPause     exec --no-startup-id playerctl play-pause
+bindsym XF86AudioNext      exec --no-startup-id playerctl next
+bindsym XF86AudioPrev      exec --no-startup-id playerctl previous
+bindsym $mod+Shift+p       exec --no-startup-id playerctl play-pause
+bindsym $mod+Shift+n       exec --no-startup-id playerctl next
+bindsym $mod+Shift+b       exec --no-startup-id playerctl previous
+bindsym $mod+Shift+period  exec --no-startup-id playerctl volume 0.03+
+bindsym $mod+Shift+comma   exec --no-startup-id playerctl volume 0.03-
+
+# Brightness
+bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set 5%+
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 10. Screenshots & recording
+# ──────────────────────────────────────────────────────────────────────────
+
+# Shift+Alt+2: active window -> clipboard
+bindsym Shift+$alt+2 exec --no-startup-id maim -u -i $(xdotool getactivewindow) | xclip -selection clipboard -t image/png
+# Shift+Alt+3: select region -> clipboard
+bindsym --release Shift+$alt+3 exec --no-startup-id maim -u -s | xclip -selection clipboard -t image/png
+# Shift+Alt+4: select region -> ~/Pictures/Screenshots
+bindsym --release Shift+$alt+4 exec --no-startup-id maim -u -s ~/Pictures/Screenshots/$(date '+%Y-%m-%d_%H.%M.%S').png
+
+# Full-screen recording (press again to stop)
+bindsym Ctrl+$alt+r exec --no-startup-id $scripts/record.sh
+bindsym $mod+$alt+o exec obs
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 11. Monitors  (DP-0 = AOC, DP-2 = LG UltraWide; layouts in scripts/monitors.sh)
+# ──────────────────────────────────────────────────────────────────────────
+
+bindsym $mod+F3 exec --no-startup-id $scripts/monitors.sh aoc
+bindsym $mod+F4 exec --no-startup-id $scripts/monitors.sh lg
+bindsym $mod+F5 exec --no-startup-id $scripts/monitors.sh both
+
+# Screens off; any key/mouse wakes them (--release + sleep so the key-up doesn't wake it instantly)
+bindsym --release $mod+o exec --no-startup-id sleep 0.5 && xset +dpms dpms 0 0 0 && xset dpms force off
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 12. Session
+# ──────────────────────────────────────────────────────────────────────────
+
+# Lock
+bindsym $mod+Delete exec --no-startup-id loginctl lock-session
+
+# Reload config / restart i3 in place (keeps windows)
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+r restart
+bindsym --release Ctrl+$mod+r restart
+
+# Log out
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+
+# Power menu (log out / reboot / power off) and instant power off
+bindsym $mod+Shift+Delete      exec --no-startup-id i3-nagbar -t warning -m 'Session' -B 'Log out' 'i3-msg exit' -B 'Reboot' 'systemctl reboot' -B 'Power off' 'systemctl poweroff'
+bindsym Ctrl+$alt+$mod+Delete exec --no-startup-id systemctl poweroff
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# 13. Bar  (status content: ~/.config/i3status/config + scripts/status.sh for the GPU)
+#     Colors are #RRGGBB or #RRGGBBAA (AA = opacity, 00 = invisible)
+# ──────────────────────────────────────────────────────────────────────────
+
+# Show / hide the bar
+bindsym $mod+b bar mode toggle
+
+bar {
+        status_command $scripts/status.sh
+        i3bar_command  i3bar --transparency
+        position top
+        font $font
+
+        # Space around the content: top/bottom, left/right
+        # padding 0px 0px
+
+        # Tray icons : none / primary
+        tray_output none
+        separator_symbol "   "
+
+        colors {
+                background $bar_background
+                statusline $bar_text
+                separator  $bar_separator
+
+                #                  border                   bg                       text
+                focused_workspace  $bar_ws_focused_bg       $bar_ws_focused_bg       $bar_ws_focused_text
+                inactive_workspace $bar_ws_inactive_bg      $bar_ws_inactive_bg      $bar_ws_inactive_text
+                urgent_workspace   $bar_ws_urgent_bg        $bar_ws_urgent_bg        $bar_ws_urgent_text
+        }
+}

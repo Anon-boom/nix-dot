@@ -138,7 +138,7 @@ if [[ "$(readlink -f "$REPO_DIR")" == "$(readlink -f "$CONFIG_DIR")" ]]; then
     info "repo IS \$XDG_CONFIG_HOME - nothing to link."
 else
     run mkdir -p "$CONFIG_DIR"
-    LINK_DIRS=(hypr quickshell gtk-3.0 gtk-4.0 qt6ct wofi kitty
+    LINK_DIRS=(hypr quickshell gtk-3.0 gtk-4.0 qt6ct wofi kitty i3 i3status
                btop fcitx5 vesktop rustdesk Thunar)
 
     for d in "${LINK_DIRS[@]}"; do
